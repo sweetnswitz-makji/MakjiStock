@@ -45,6 +45,11 @@
 .ap-card b{font-size:22px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .ap-card--warn{background:#FDF1EF;border-color:#F2C9C3}
 .ap-card--warn span,.ap-card--warn b{color:#9A2A1F}
+.ap-switch{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 18px;border-radius:14px;background:#fff;border:1px solid var(--line)}
+.ap-switch div{display:grid;gap:4px}
+.ap-switch small{font-size:12.5px;color:var(--ink-2)}
+.ap-switch.ap-card--warn{background:#FDF1EF;border-color:#F2C9C3}
+.ap-switch.ap-card--warn b{color:#9A2A1F}
 
 .ap-box{padding:22px;border-radius:16px;background:#fff;border:1px solid var(--line);display:grid;gap:14px}
 .ap-box__h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}

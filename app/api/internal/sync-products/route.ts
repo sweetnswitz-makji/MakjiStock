@@ -17,9 +17,10 @@ function authorized(request: Request) {
 
 /* 데모몰에는 막지 상품이 없고 Cafe24 기본 샘플만 있다. 그동안은 수동 매핑을 쓴다.
    실제 상품이 등록되면 config/cafe24-product-map.json 을 지운다 —
-   그러면 override 가 비어 아래 이름 매칭으로 자동 전환된다. */
-const OVERRIDE: Record<string, { productNo: number; sampleName: string }> =
-  (overrideFile as { map?: Record<string, { productNo: number; sampleName: string }> }).map ?? {};
+   그러면 override 가 비어 아래 이름 매칭으로 자동 전환된다.
+   매핑은 그 파일의 _mallId 몰에만 쓴다 — 다른 몰에 붙이면 엉뚱한 상품 가격이 바뀐다. */
+const overrideConfig = overrideFile as { _mallId?: string; map?: Record<string, { productNo: number; sampleName: string }> };
+const OVERRIDE = process.env.CAFE24_MALL_ID === overrideConfig._mallId ? (overrideConfig.map ?? {}) : {};
 
 /** 공백·대소문자·괄호를 지워 비교한다. 몰에 등록된 이름이 조금 달라도 잡히게. */
 function normalize(name: string) {
@@ -33,7 +34,7 @@ async function buildPlan() {
 
   const { data: local, error } = await supabaseAdmin()
     .from("products")
-    .select("id,ticker,name,base_price_won,cafe24_product_no")
+    .select("id,ticker,name,full_name,base_price_won,cafe24_product_no")
     .order("ticker");
   if (error) throw new Error(`상품 조회 실패: ${error.message}`);
 
@@ -54,7 +55,9 @@ async function buildPlan() {
     }
 
     const target = normalize(row.name);
-    const exact = remote.find((item) => normalize(item.product_name) === target);
+    // 상세 이름(full_name)은 몰 상품명을 그대로 옮겨 둔 것이라 먼저 맞춰 본다.
+    const names = [row.full_name, row.name].filter(Boolean).map((n: string) => normalize(n));
+    const exact = remote.find((item) => names.includes(normalize(item.product_name)));
     // 정확히 안 맞으면 한쪽이 다른 쪽을 포함하는지 본다
     const loose =
       exact ??

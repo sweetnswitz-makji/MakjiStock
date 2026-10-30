@@ -1,5 +1,5 @@
 import { CAFE24_WRITES_ENABLED, cafe24ShopNo } from "@/lib/cafe24/client";
-import { syncCafe24ProductPrice } from "@/lib/cafe24/price-sync";
+import { priceSyncEnabled, syncCafe24ProductPrice } from "@/lib/cafe24/price-sync";
 import { loadActivePolicy } from "@/lib/bread-market/policy-server";
 import { kstToday } from "@/lib/pricing/dates.mjs";
 import { supabaseAdmin } from "@/lib/supabase/admin";
@@ -77,6 +77,7 @@ async function run(request: Request, { defaultCommit }: { defaultCommit: boolean
 
     const shopNo = cafe24ShopNo();
     const applied: Record<string, string>[] = [];
+    const priceSyncOn = await priceSyncEnabled();
 
     for (const product of products) {
       if (!product.cafe24_product_no) {
@@ -92,6 +93,10 @@ async function run(request: Request, { defaultCommit }: { defaultCommit: boolean
           result: commit ? "skipped" : "dry-run",
           ...(commit ? { reason: "로컬 — 실몰 반영 생략" } : {}),
         });
+        continue;
+      }
+      if (!priceSyncOn) {
+        applied.push({ ticker: product.ticker, result: "skipped", reason: "어드민에서 몰 가격 반영 꺼짐" });
         continue;
       }
       try {

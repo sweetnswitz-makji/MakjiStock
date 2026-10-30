@@ -1,5 +1,5 @@
 import { CAFE24_WRITES_ENABLED, cafe24ShopNo } from "@/lib/cafe24/client";
-import { syncCafe24ProductPrice } from "@/lib/cafe24/price-sync";
+import { priceSyncEnabled, syncCafe24ProductPrice } from "@/lib/cafe24/price-sync";
 import { issueLockCodes, type IssueResult } from "@/lib/locks/lock-codes";
 import { resolvePredictions, type ResolveResult } from "@/lib/predictions/resolve";
 import { addDays, kstToday } from "@/lib/pricing/dates.mjs";
@@ -308,6 +308,7 @@ async function run(request: Request, { defaultCommit }: { defaultCommit: boolean
     const applied: Record<string, string>[] = [];
 
     if (commit) {
+      const priceSyncOn = await priceSyncEnabled();
       for (const { product, calc } of calculated) {
         if (!product.cafe24_product_no) {
           applied.push({ ticker: product.ticker, result: "skipped", reason: "cafe24_product_no 없음" });
@@ -317,6 +318,11 @@ async function run(request: Request, { defaultCommit }: { defaultCommit: boolean
            반영은 건너뛴다 — cafe24_apply_status 는 pending 으로 남는다. */
         if (!CAFE24_WRITES_ENABLED) {
           applied.push({ ticker: product.ticker, result: "skipped", reason: "로컬 — 실몰 반영 생략" });
+          continue;
+        }
+        // 어드민 스위치가 꺼져 있으면 계산가는 저장만 하고 몰에는 보내지 않는다 (pending 유지).
+        if (!priceSyncOn) {
+          applied.push({ ticker: product.ticker, result: "skipped", reason: "어드민에서 몰 가격 반영 꺼짐" });
           continue;
         }
         try {

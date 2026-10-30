@@ -1,6 +1,7 @@
 import demoShop from "@/config/cafe24-product-map.json";
 import { CAFE24_OPTION_PRICES } from "@/config/cafe24-option-prices";
 import { cafe24Request } from "@/lib/cafe24/client";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import {
   assertCompleteVariantPricePlan,
   buildVariantPricePlan,
@@ -15,6 +16,28 @@ function isDemoProduct(productId: string, productNo: number): boolean {
   if (process.env.CAFE24_MALL_ID !== config._mallId) return false;
   const map = config.map ?? {};
   return map[productId]?.productNo === productNo;
+}
+
+/* 어드민 "몰 가격 반영" 스위치. 꺼져 있으면 가격은 계산·저장하되 몰 판매가는 바꾸지 않는다.
+   따로 테이블을 두지 않고 변경 기록(admin_audit_log)의 마지막 켜짐/꺼짐 행을 상태로 쓴다 —
+   누가 언제 바꿨는지가 함께 남는다. 기록이 없거나 못 읽으면 꺼짐으로 본다.
+   ponytail: 운영 스위치가 더 생기면 settings 테이블로 옮긴다. */
+export const PRICE_SYNC_TARGET = "Cafe24 가격 반영";
+
+export async function priceSyncEnabled(): Promise<boolean> {
+  const { data, error } = await supabaseAdmin()
+    .from("admin_audit_log")
+    .select("change")
+    .eq("kind", "product")
+    .eq("target", PRICE_SYNC_TARGET)
+    .order("at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    console.error("[price-sync] 스위치를 읽지 못해 꺼짐으로 봅니다", error.message);
+    return false;
+  }
+  return data?.change === "켜짐";
 }
 
 export type Cafe24PriceSyncResult = {

@@ -7,6 +7,7 @@ import { isAdminAuthorization } from "@/lib/admin/auth";
 import { loadAdminProduct } from "@/lib/admin/data";
 import { photoProblem, removeBreadPhoto, uploadBreadPhoto } from "@/lib/admin/photos";
 import { cafe24Request, cafe24ShopNo } from "@/lib/cafe24/client";
+import { PRICE_SYNC_TARGET } from "@/lib/cafe24/price-sync";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 const MAX_KEYWORDS = 20; // 네이버 데이터랩 한 그룹 한도 (lib/pricing/naver.mjs)
@@ -198,7 +199,19 @@ export async function saveProduct(id: string, formData: FormData) {
   redirect(`/admin/products?saved=${encodeURIComponent(before.ticker)}`);
 }
 
-export type Cafe24Check = { ok: true; name: string; priceWon: number } | { ok: false; error: string };
+/* 몰 가격 반영 스위치. 변경 기록 한 줄이 곧 상태다 (lib/cafe24/price-sync.ts priceSyncEnabled). */
+export async function setPriceSync(formData: FormData) {
+  await assertAdmin();
+  const on = formData.get("on") === "1";
+  const { error } = await supabaseAdmin()
+    .from("admin_audit_log")
+    .insert({ kind: "product", target: PRICE_SYNC_TARGET, change: on ? "켜짐" : "꺼짐" });
+  if (error) backTo("/admin/products", `바꾸지 못했어요: ${error.message}`);
+  revalidatePath("/admin", "layout");
+  redirect("/admin/products");
+}
+
+export type Cafe24Check ={ ok: true; name: string; priceWon: number } | { ok: false; error: string };
 
 /* 상품번호로 Cafe24 상품명·판매가를 읽어 온다. 읽기만 한다. */
 export async function checkCafe24Product(productNo: number): Promise<Cafe24Check> {

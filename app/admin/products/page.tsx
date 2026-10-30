@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { loadAdminProducts } from "@/lib/admin/data";
 import { kstNow } from "@/lib/market/calendar";
+import { priceSyncEnabled } from "@/lib/cafe24/price-sync";
+import { setPriceSync } from "./actions";
 
 export const dynamic = "force-dynamic";
 
 const won = (n: number) => n.toLocaleString("ko-KR");
 
-export default async function AdminProductsPage({ searchParams }: { searchParams: Promise<{ saved?: string }> }) {
-  const { saved } = await searchParams;
-  const { rows, summary } = await loadAdminProducts();
+export default async function AdminProductsPage({ searchParams }: { searchParams: Promise<{ saved?: string; error?: string }> }) {
+  const { saved, error } = await searchParams;
+  const [{ rows, summary }, priceSyncOn] = await Promise.all([loadAdminProducts(), priceSyncEnabled()]);
   const now = kstNow();
 
   return (
@@ -22,6 +24,22 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
       </div>
 
       {saved ? <p className="ap-msg ap-msg--ok" role="status">{saved} 저장했어요. 다음 가격 계산부터 반영돼요.</p> : null}
+      {error ? <p className="ap-msg ap-msg--err" role="alert">{error}</p> : null}
+
+      <form action={setPriceSync} className={`ap-switch${priceSyncOn ? "" : " ap-card--warn"}`}>
+        <input type="hidden" name="on" value={priceSyncOn ? "0" : "1"} />
+        <div>
+          <b>몰 가격 반영 {priceSyncOn ? "켜짐" : "꺼짐"}</b>
+          <small>
+            {priceSyncOn
+              ? "가격 계산 때마다 Cafe24 몰 판매가를 바꾸고, 02:00 에 정가로 되돌려요."
+              : "가격은 계속 계산해 시세에 보여 주지만, Cafe24 몰 판매가는 바꾸지 않아요."}
+          </small>
+        </div>
+        <button type="submit" className={`ap-btn${priceSyncOn ? " ap-btn--ghost" : ""}`}>
+          {priceSyncOn ? "끄기" : "켜기"}
+        </button>
+      </form>
 
       <div className="ap-cards">
         <div className="ap-card"><span>판매 중</span><b>{summary.activeCount}종</b></div>
