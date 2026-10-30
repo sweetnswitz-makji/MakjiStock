@@ -1,8 +1,8 @@
 /* 백테스트 결과(backtest/output 아래 daily.csv)를 daily_prices 에 채운다.
    화면의 91일 추이 차트가 실데이터를 그리려면 과거가 필요하다.
-   산식이 같으므로(v1.0) 오늘 계산되는 값과 이어진다.
+   산식 버전은 백테스트 설정(--config, 기본 backtest/config.json)의 formulaVersion 을 쓴다 — 운영 pricing_versions 와 같아야 오늘 값과 이어진다.
 
-   사용: node scripts/backfill-daily-prices.mjs --input <daily.csv> [--commit] */
+   사용: node scripts/backfill-daily-prices.mjs --input <daily.csv> [--config <config.json>] [--env-file <.env>] [--commit] */
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
@@ -39,6 +39,8 @@ async function main() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) throw new Error("Supabase 환경변수가 필요합니다.");
 
+  const config = JSON.parse(await readFile(path.resolve(args.config ?? "backtest/config.json"), "utf8"));
+  const formulaVersion = config.pricing.formulaVersion;
   const csv = await readFile(path.resolve(args.input), "utf8");
   const [head, ...lines] = csv.trim().split("\n");
   const cols = head.split(",");
@@ -62,7 +64,7 @@ async function main() {
       publish_date: r.publishDate,
       price_session: SESSION[r.priceSession],
       signal_date: r.searchSignalDate,
-      formula_version: "v1.0",
+      formula_version: formulaVersion,
       search_ratio: Math.abs(Number(r.searchRatio)),
       search_discount_pct: Number(r.searchCouponPct),
       fx_previous_date: r.fxPreviousDate,
@@ -83,7 +85,7 @@ async function main() {
   });
 
   console.log(`읽음 ${rows.length}행 → 적재 대상 ${payload.length}행`);
-  console.log(`기간 ${payload[0].publish_date} ~ ${payload.at(-1).publish_date}`);
+  console.log(`기간 ${payload[0].publish_date} ~ ${payload.at(-1).publish_date} · 산식 ${formulaVersion}`);
   if (!args.commit) {
     console.table(payload.slice(0, 3).map(({ product_id, publish_date, price_session, discount_pct, price_won }) =>
       ({ product_id, publish_date, price_session, discount_pct: discount_pct.toFixed(2), price_won })));
