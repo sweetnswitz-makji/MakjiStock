@@ -52,7 +52,7 @@ test("정가 리셋은 옵션 추가금도 원래 값으로 복원한다", () =>
     variants: variants(
       "피칸 휘낭시에 냉동생지",
       "초코 휘낭시에 냉동생지",
-      "스콘 냉동생지 (+4,000원)",
+      "스콘 냉동생지",
     ),
     definitions: CAFE24_OPTION_PRICES.gluten_free_frozen_dough_set,
     productSalePriceWon: 21_000,

@@ -14,21 +14,21 @@ export const CAFE24_OPTION_PRICES: Record<string, readonly Cafe24OptionPrice[]> 
   gluten_free_frozen_dough_set: [
     { optionValue: "피칸 휘낭시에 냉동생지", listPriceWon: 21_000 },
     { optionValue: "초코 휘낭시에 냉동생지", listPriceWon: 21_000 },
-    { optionValue: "스콘 냉동생지 (+4000원)", listPriceWon: 25_000 },
+    { optionValue: "스콘 냉동생지", listPriceWon: 25_000 },
   ],
   morning_roll: [
     { optionValue: "1개 ", listPriceWon: 4_500 },
-    { optionValue: "3개 (+7700원)", listPriceWon: 12_200 },
-    { optionValue: "5개 (+14700원)", listPriceWon: 19_200 },
+    { optionValue: "3개", listPriceWon: 12_200 },
+    { optionValue: "5개", listPriceWon: 19_200 },
   ],
   tetris_bread: [{ optionValue: "단일 옵션", listPriceWon: 11_000 }],
   english_muffin: [
     { optionValue: "비건", listPriceWon: 1_500 },
-    { optionValue: "햄치즈 (+2300원)", listPriceWon: 3_800 },
-    { optionValue: "햄치즈 4개 SET (10%↓)", listPriceWon: 13_700 },
-    { optionValue: "비건 5개 SET (10%↓)", listPriceWon: 5_400 },
-    { optionValue: "햄치즈 8개 SET (15%↓)", listPriceWon: 25_900 },
-    { optionValue: "비건 10개 SET (10%↓)", listPriceWon: 12_800 },
+    { optionValue: "햄치즈", listPriceWon: 3_800 },
+    { optionValue: "햄치즈 4개SET", listPriceWon: 13_700 },
+    { optionValue: "비건 5개SET", listPriceWon: 5_400 },
+    { optionValue: "햄치즈 8개SET", listPriceWon: 25_900 },
+    { optionValue: "비건 10SET", listPriceWon: 12_800 },
   ],
   gluten_free_financier: [
     { optionValue: "피칸", listPriceWon: 3_800 },
@@ -37,7 +37,8 @@ export const CAFE24_OPTION_PRICES: Record<string, readonly Cafe24OptionPrice[]> 
   ],
   gluten_free_scone: [
     { optionValue: "막지 글루텐프리 스콘1개", listPriceWon: 3_800 },
-    { optionValue: "막지 글루텐프리 스콘3개 set (+6400원)", listPriceWon: 10_200 },
-    { optionValue: "막지 글루텐프리 스콘5개 set (+12400원)", listPriceWon: 16_200 },
+    { optionValue: "막지 글루텐프리 스콘 3개 set", listPriceWon: 10_200 },
+    // 몰 옵션명 오타("믹지")를 그대로 따른다. 몰에서 고치면 여기도 같이 고친다.
+    { optionValue: "믹지 글루텐프리 스콘 5개 set", listPriceWon: 16_200 },
   ],
 };
